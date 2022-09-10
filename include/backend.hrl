@@ -11,7 +11,7 @@
 -type dbref() :: atom() | ets:id().
 -type name() :: binary().
 -type operation_error() :: {error, Reason :: term()}.
--type pin() :: binary().
+-type pin() :: non_neg_integer().
 -type transactions() :: [#transaction{}].
 -type type() :: debit | credit.
 
