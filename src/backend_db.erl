@@ -12,7 +12,8 @@
     is_pin_valid/3,
     lookup/2,
     lookup_by_name/2,
-    new_account/4
+    new_account/4,
+    update_account/2
 ]).
 
 -spec create_db() -> dbref().
@@ -37,6 +38,25 @@ new_account(AccNo, Pin, Name, Dbref) ->
     ok_or_error(
         ets:insert_new(Dbref, Account),
         {error, exists}
+    ).
+
+-spec update_account(#account{}, dbref()) ->
+    ok | operation_error().
+update_account(#account{acc_no = AccNo} = Account, Dbref) ->
+    MatchSpec = ets:fun2ms(fun(
+        AIn = #account{
+            acc_no = AccNoInEts
+        }
+    ) when AccNo == AccNoInEts ->
+        AIn#account{
+            balance = Account#account.balance,
+            blocked = Account#account.blocked,
+            name = Account#account.name,
+            pin = Account#account.pin
+        }
+    end),
+    maybe_ok(
+        ets:select_replace(Dbref, MatchSpec)
     ).
 
 -spec credit(account_number(), amount(), dbref()) -> ok | {error, instance}.
