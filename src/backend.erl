@@ -3,7 +3,6 @@
 -behaviour(gen_server).
 
 -include_lib("../include/backend.hrl").
-
 -record(backend_state, {dbref :: dbref()}).
 
 -define(GID, {global, ?MODULE}).
@@ -13,22 +12,32 @@
 
 -export([
     start_link/0,
-    stop/0,
-    reboot/0,
     account/1,
     accounts_by_name/1,
-    list_accounts/0,
-    pin_valid/2,
-    withdraw/3,
-    deposit/2,
-    transfer/4,
     balance/2,
-    transactions/2
+    block/1,
+    delete_account/1,
+    deposit/2,
+    list_accounts/0,
+    new_account/4,
+    pin_valid/2,
+    reboot/0,
+    stop/0,
+    transactions/2,
+    transfer/4,
+    unblock/1,
+    update_account/1,
+    withdraw/3
 ]).
 
 % Server (callbacks)
 
--export([init/1, handle_call/3, handle_cast/2, terminate/2]).
+-export([
+    init/1,
+    handle_call/3,
+    handle_cast/2,
+    terminate/2
+]).
 
 -type backend_db_error() :: operation_error().
 -type backend_error() :: operation_error().
@@ -44,54 +53,17 @@ start_link() ->
             {ok, Pid1}
     end.
 
--spec stop() -> ok.
-stop() ->
-    gen_server:stop(?GCALL).
-
--spec reboot() -> ok.
-reboot() ->
-    gen_server:call(?GCALL, reboot).
-
 -spec account(account_number()) -> #account{} | {error, Reason :: term()}.
 account(AccNo) ->
     Result = gen_server:call(?GCALL, {account, AccNo}),
-    maybe_error(Result, {error, no_account}).
+    maybe_error(
+        Result,
+        {error, no_account}
+    ).
 
 -spec accounts_by_name(name()) -> [#account{}].
 accounts_by_name(Name) ->
     gen_server:call(?GCALL, {accounts_by_name, Name}).
-
--spec list_accounts() -> [#account{}].
-list_accounts() ->
-    gen_server:call(?GCALL, {list_accounts}).
-
--spec pin_valid(account_number(), pin()) -> boolean().
-pin_valid(AccNo, Pin) ->
-    gen_server:call(?GCALL, {pin_valid, AccNo, Pin}).
-
--spec withdraw(account_number(), pin(), amount()) -> ok | {error, Reason :: term()}.
-withdraw(AccNo, Pin, Amount) ->
-    case pin_valid(AccNo, Pin) of
-        true ->
-            Result = gen_server:call(?GCALL, {withdraw, AccNo, Amount}),
-            maybe_error(Result, {error, balance});
-        false ->
-            {error, invalid_pin}
-    end.
-
--spec deposit(account_number(), amount()) -> ok | {error, Reason :: term()}.
-deposit(AccNo, Amount) ->
-    gen_server:cast(?GCALL, {deposit, AccNo, Amount}).
-
--spec transfer(account_number(), account_number(), amount(), pin()) ->
-    ok | {error, Reason :: term()}.
-transfer(AccNoFrom, AccNoTo, Amount, Pin) ->
-    case withdraw(AccNoFrom, Pin, Amount) of
-        ok ->
-            deposit(AccNoTo, Amount);
-        Error ->
-            Error
-    end.
 
 -spec balance(account_number(), pin()) -> balance() | {error, Reason :: term()}.
 balance(AccNo, Pin) ->
@@ -99,9 +71,41 @@ balance(AccNo, Pin) ->
         true ->
             #account{balance = Balance} = account(AccNo),
             Balance;
-        false ->
-            {error, invalid_pin}
+        Error ->
+            Error
     end.
+
+-spec block(account_number()) -> ok.
+block(AccNo) ->
+    gen_server:cast(?GCALL, {block, AccNo}).
+
+-spec delete_account(account_number()) -> ok.
+delete_account(AccNo) ->
+    gen_server:call(?GCALL, {delete_account, AccNo}).
+
+-spec deposit(account_number(), amount()) -> ok | {error, Reason :: term()}.
+deposit(AccNo, Amount) ->
+    gen_server:cast(?GCALL, {deposit, AccNo, Amount}).
+
+-spec list_accounts() -> [#account{}].
+list_accounts() ->
+    gen_server:call(?GCALL, list_accounts).
+
+-spec new_account(account_number(), pin(), name(), amount()) -> ok.
+new_account(AccNo, Pin, Name, Balance) ->
+    gen_server:call(?GCALL, {new_account, AccNo, Pin, Name, Balance}).
+
+-spec pin_valid(account_number(), pin()) -> boolean().
+pin_valid(AccNo, Pin) ->
+    gen_server:call(?GCALL, {pin_valid, AccNo, Pin}).
+
+-spec reboot() -> ok.
+reboot() ->
+    gen_server:call(?GCALL, reboot).
+
+-spec stop() -> ok.
+stop() ->
+    gen_server:stop(?GCALL).
 
 -spec transactions(account_number(), pin()) -> transactions() | {error, Reason :: term()}.
 transactions(AccNo, Pin) ->
@@ -109,18 +113,45 @@ transactions(AccNo, Pin) ->
         true ->
             #account{transactions = Trs} = account(AccNo),
             Trs;
+        Error ->
+            Error
+    end.
+
+-spec transfer(account_number(), account_number(), amount(), pin()) ->
+    ok | {error, Reason :: term()}.
+transfer(AccNoOrig, AccNoDst, Amount, Pin) ->
+    case withdraw(AccNoOrig, Pin, Amount) of
+        ok ->
+            deposit(AccNoDst, Amount);
+        Error ->
+            Error
+    end.
+
+-spec unblock(account_number()) -> ok.
+unblock(AccNo) ->
+    gen_server:cast(?GCALL, {unblock, AccNo}).
+
+-spec update_account(#account{}) -> ok.
+update_account(#account{} = Acc) ->
+    gen_server:call(?GCALL, {update_account, Acc}).
+
+-spec withdraw(account_number(), pin(), amount()) -> ok | {error, Reason :: term()}.
+withdraw(AccNo, Pin, Amount) ->
+    case pin_valid(AccNo, Pin) of
+        true ->
+            Result = gen_server:call(?GCALL, {withdraw, AccNo, Amount}),
+            maybe_error(
+                Result,
+                {error, balance}
+            );
         false ->
             {error, invalid_pin}
     end.
 
--spec maybe_error(ok | #account{} | backend_db_error(), backend_error()) ->
-    ok | #account{} | backend_error().
-maybe_error({error, _}, Error) ->
-    Error;
-maybe_error(Term, _Error) ->
-    Term.
-
-% Server (callbacks)
+-spec maybe_error(backend_db_error() | #account{} | ok, backend_error()) ->
+    #account{} | ok | backend_error().
+maybe_error({error, _}, Error) -> Error;
+maybe_error(Term, _Error) -> Term.
 
 -spec init_accounts(dbref()) -> ok.
 init_accounts(Dbref) ->
@@ -139,6 +170,8 @@ init_accounts(Dbref) ->
         Accounts
     ).
 
+% Server (callbacks)
+
 -spec init(any()) -> {ok, #backend_state{}}.
 init(_) ->
     Dbref = backend_db:create_db(),
@@ -146,13 +179,20 @@ init(_) ->
     State = #backend_state{dbref = Dbref},
     {ok, State}.
 
+handle_call({update_account, Acc}, _From, State = #backend_state{dbref = Dbref}) ->
+    Reply = backend_db:update_account(Acc, Dbref),
+    {reply, Reply, State};
+handle_call({new_account, AccNo, Pin, Name, Balance}, _From, State = #backend_state{dbref = Dbref}) ->
+    backend_db:new_account(AccNo, Pin, Name, Dbref),
+    Reply = backend_db:credit(AccNo, Balance, Dbref),
+    {reply, Reply, State};
 handle_call({account, AccNo}, _From, State = #backend_state{dbref = Dbref}) ->
     Reply = backend_db:lookup(AccNo, Dbref),
     {reply, Reply, State};
 handle_call({accounts_by_name, Name}, _From, State = #backend_state{dbref = Dbref}) ->
     Reply = backend_db:lookup_by_name(Name, Dbref),
     {reply, Reply, State};
-handle_call({list_accounts}, _From, State = #backend_state{dbref = Dbref}) ->
+handle_call(list_accounts, _From, State = #backend_state{dbref = Dbref}) ->
     Reply = backend_db:all_accounts(Dbref),
     {reply, Reply, State};
 handle_call({pin_valid, AccNo, Pin}, _From, State = #backend_state{dbref = Dbref}) ->
