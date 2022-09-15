@@ -65,10 +65,12 @@ update_account(#account{acc_no = AccNo} = Account, Dbref) ->
 
 -spec block(account_number(), dbref()) -> ok.
 block(AccNo, Dbref) ->
+    event_manager:notify({account_blocked, AccNo}),
     toggle_account_block(AccNo, Dbref, true).
 
 -spec unblock(account_number(), dbref()) -> ok.
 unblock(AccNo, Dbref) ->
+    event_manager:notify({account_unblocked, AccNo}),
     toggle_account_block(AccNo, Dbref, false).
 
 -spec toggle_account_block(account_number(), dbref(), atom()) -> maybe_ok().
@@ -129,6 +131,7 @@ make_transaction(AccNo, Type, Amount, NewBalance, Trs, Dbref) ->
 is_pin_valid(AccNo, Pin, Dbref) ->
     case lookup(AccNo, Dbref) of
         #account{pin = PinInEts, blocked = Blocked} ->
+            event_manager:notify({valid_pin, AccNo}),
             if
                 not Blocked ->
                     PinInEts == Pin;
@@ -136,6 +139,7 @@ is_pin_valid(AccNo, Pin, Dbref) ->
                     false
             end;
         _ ->
+            event_manager:notify({invalid_pin, AccNo}),
             false
     end.
 

@@ -85,6 +85,7 @@ delete_account(AccNo) ->
 
 -spec deposit(account_number(), amount()) -> ok | {error, Reason :: term()}.
 deposit(AccNo, Amount) ->
+    event_manager:notify({deposit, Amount}),
     gen_server:cast(?GCALL, {deposit, AccNo, Amount}).
 
 -spec list_accounts() -> [#account{}].
@@ -122,6 +123,7 @@ transactions(AccNo, Pin) ->
 transfer(AccNoOrig, AccNoDst, Amount, Pin) ->
     case withdraw(AccNoOrig, Pin, Amount) of
         ok ->
+            event_manager:notify({transfer, Amount}),
             deposit(AccNoDst, Amount);
         Error ->
             Error
@@ -139,6 +141,7 @@ update_account(#account{} = Acc) ->
 withdraw(AccNo, Pin, Amount) ->
     case pin_valid(AccNo, Pin) of
         true ->
+            event_manager:notify({withdraw, Amount}),
             Result = gen_server:call(?GCALL, {withdraw, AccNo, Amount}),
             maybe_error(
                 Result,
@@ -209,6 +212,12 @@ handle_call(reboot, _From, _State) ->
 
 handle_cast({deposit, AccNo, Amount}, State = #backend_state{dbref = Dbref}) ->
     _Reply = backend_db:credit(AccNo, Amount, Dbref),
+    {noreply, State};
+handle_cast({block, AccNo}, State = #backend_state{dbref = Dbref}) ->
+    _Reply = backend_db:block(AccNo, Dbref),
+    {noreply, State};
+handle_cast({unblock, AccNo}, State = #backend_state{dbref = Dbref}) ->
+    _Reply = backend_db:unblock(AccNo, Dbref),
     {noreply, State}.
 
 terminate(_Reason, #backend_state{dbref = Dbref}) ->
