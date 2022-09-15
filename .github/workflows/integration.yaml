@@ -23,7 +23,7 @@ jobs:
           path: _build
           key: build-default-rebar${{ env.REBAR_VERSION }}-otp-${{ env.OTP_VERSION }}
           restore-keys: |
-            build-default-rebar${{ enb.REBAR_VERSION }}-otp${{ env.OTP_VERSION }}
+            build-default-rebar${{ env.REBAR_VERSION }}-otp${{ env.OTP_VERSION }}
 
       - name: "Check that code is formatted"
         run: rebar3 fmt --check
