@@ -21,7 +21,7 @@
 -type maybe_ok() :: ok | operation_error().
 
 -spec create_db() -> dbref().
-create_db() -> ets:new(account, [set, {keypos, #account.acc_no}]).
+create_db() -> ets:new(accounts, [set, {keypos, #account.acc_no}]).
 
 -spec lookup(account_number(), dbref()) -> #account{} | {error, instance}.
 lookup(AccNo, Dbref) ->
