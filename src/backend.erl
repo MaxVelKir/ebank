@@ -122,6 +122,7 @@ transactions(AccNo, Pin) ->
 transfer(AccNoOrig, AccNoDst, Amount, Pin) ->
     case withdraw(AccNoOrig, Pin, Amount) of
         ok ->
+            event_manager:notify({transfer, Amount}),
             deposit(AccNoDst, Amount);
         Error ->
             Error
@@ -209,6 +210,12 @@ handle_call(reboot, _From, _State) ->
 
 handle_cast({deposit, AccNo, Amount}, State = #backend_state{dbref = Dbref}) ->
     _Reply = backend_db:credit(AccNo, Amount, Dbref),
+    {noreply, State};
+handle_cast({block, AccNo}, State = #backend_state{dbref = Dbref}) ->
+    _Reply = backend_db:block(AccNo, Dbref),
+    {noreply, State};
+handle_cast({unblock, AccNo}, State = #backend_state{dbref = Dbref}) ->
+    _Reply = backend_db:unblock(AccNo, Dbref),
     {noreply, State}.
 
 terminate(_Reason, #backend_state{dbref = Dbref}) ->

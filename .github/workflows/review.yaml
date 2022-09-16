@@ -3,29 +3,29 @@ name: Review
 on:
   pull_request:
     types: [opened, ready_for_review, reopened, synchronize]
-  jobs:
-    yamllint:
-      name: Yamllint (Yaml)
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v2
+jobs:
+  yamllint:
+    name: Yamllint (Yaml)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-        - name: Run Yamllint
-          uses: reviewdog/action-yamllint@v1
-          with:
-            github_token: ${{ secrets.github_token }}
-	    reported: github-pr-review
+      - name: Run Yamllint
+        uses: reviewdog/action-yamllint@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
 
-    misspell:
-      name: Misspell (Spellcheck)
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v2
+  misspell:
+    name: Misspell (Spellcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-        - name: Run Misspell
-          uses: reviewdog/action-misspell@v1
-          with:
-            github_token: ${{ secrets.github_token }}
-            reported: github-pr-review
+      - name: Run Misspell
+        uses: reviewdog/action-misspell@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reported: github-pr-review

@@ -3,17 +3,13 @@
 
 happy_path_test() ->
     application:start(sasl),
+    {ok, _} = helpers:ensure_started(event_manager),
     {ok, _} = helpers:ensure_started(backend),
-    {account, 1, 123045.0, false, "Henry Nystrom", 1234, _trs} = backend:account(
-        1
-    ),
+    {account, 1, 123045.0, false, "Henry Nystrom", 1234, _trs} = backend:account(1),
 
     {error, no_account} = backend:account(7),
 
     [
-        {account, 4, 5.0e3, false, "Henry Nystrom", 1234, [
-            {transaction, credit, _, 5.0e3}
-        ]},
         {account, 1, 123045.0, false, "Henry Nystrom", 1234, [
             {transaction, credit, _, 110.0},
             {transaction, debit, _, 120.0},
@@ -22,13 +18,13 @@ happy_path_test() ->
             {transaction, debit, _, 3150.0},
             {transaction, credit, _, 1525.0},
             {transaction, credit, _, 1.23e5}
+        ]},
+        {account, 4, 5.0e3, false, "Henry Nystrom", 1234, [
+            {transaction, credit, _, 5.0e3}
         ]}
     ] = backend:accounts_by_name("Henry Nystrom"),
 
     [
-        {account, 4, 5.0e3, false, "Henry Nystrom", 1234, [
-            {transaction, credit, _, 5.0e3}
-        ]},
         {account, 1, 123045.0, false, "Henry Nystrom", 1234, [
             {transaction, credit, _, 110.0},
             {transaction, debit, _, 120.0},
@@ -38,11 +34,14 @@ happy_path_test() ->
             {transaction, credit, _, 1525.0},
             {transaction, credit, _, 1.23e5}
         ]},
-        {account, 3, 1.0e3, false, "Gabor Olah", 1111, [
-            {transaction, credit, _, 1.0e3}
-        ]},
         {account, 2, 200.0, false, "Martin Gausby", 4321, [
             {transaction, credit, _, 200.0}
+        ]},
+        {account, 4, 5.0e3, false, "Henry Nystrom", 1234, [
+            {transaction, credit, _, 5.0e3}
+        ]},
+        {account, 3, 1.0e3, false, "Gabor Olah", 1111, [
+            {transaction, credit, _, 1.0e3}
         ]}
     ] =
         backend:list_accounts(),

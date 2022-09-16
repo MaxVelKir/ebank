@@ -8,7 +8,7 @@
 -behaviour(supervisor).
 
 -export([
-    start_atm/0
+    start_link/0
 ]).
 
 -export([
@@ -17,7 +17,7 @@
 
 -define(SERVER, ?MODULE).
 
-start_atm() ->
+start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 init([]) ->
@@ -29,8 +29,12 @@ init([]) ->
 
     ChildSpecs = [
         #{
+            id => event_manager,
+            start => {event_manager, start_link, []}
+        },
+        #{
             id => backend,
-            start => {atm, start_link, []},
+            start => {backend, start_link, []},
             restart => permanent,
             shutdown => brutal_kill,
             type => worker,

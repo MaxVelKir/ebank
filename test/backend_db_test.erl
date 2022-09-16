@@ -2,6 +2,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 happy_path_test() ->
+    {ok, _} = helpers:ensure_started(event_manager),
     DB = backend_db:create_db(),
     ok = backend_db:new_account(1, "1234", "Donald Duck", DB),
     {account, 1, 0, false, "Donald Duck", "1234", []} = backend_db:lookup(1, DB),

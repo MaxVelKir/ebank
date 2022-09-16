@@ -51,6 +51,7 @@ groups() ->
 all() -> [{group, stateful}].
 
 init_per_group(_Type, Config) ->
+    {ok, _} = helpers:ensure_started(event_manager),
     {ok, _} = helpers:ensure_started(backend),
     Config.
 
@@ -58,6 +59,7 @@ end_per_group(_Group, _Config) ->
     ok.
 
 init_per_testcase(Test, Config) ->
+    {ok, _} = helpers:ensure_started(event_manager),
     {ok, _} = helpers:ensure_started(backend),
     start_atm(Test, Config).
 

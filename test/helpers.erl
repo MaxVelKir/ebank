@@ -3,7 +3,9 @@
 -export([ensure_started/1]).
 
 ensure_started(backend) ->
-    avoid_crash(backend:start_link()).
+    avoid_crash(backend:start_link());
+ensure_started(event_manager) ->
+    avoid_crash(event_manager:start_link()).
 
 avoid_crash(Result) ->
     case Result of
