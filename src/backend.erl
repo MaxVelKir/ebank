@@ -85,7 +85,6 @@ delete_account(AccNo) ->
 
 -spec deposit(account_number(), amount()) -> ok | {error, Reason :: term()}.
 deposit(AccNo, Amount) ->
-    event_manager:notify({deposit, Amount}),
     gen_server:cast(?GCALL, {deposit, AccNo, Amount}).
 
 -spec list_accounts() -> [#account{}].
@@ -141,7 +140,6 @@ update_account(#account{} = Acc) ->
 withdraw(AccNo, Pin, Amount) ->
     case pin_valid(AccNo, Pin) of
         true ->
-            event_manager:notify({withdraw, Amount}),
             Result = gen_server:call(?GCALL, {withdraw, AccNo, Amount}),
             maybe_error(
                 Result,

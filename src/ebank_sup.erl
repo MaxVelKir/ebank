@@ -29,6 +29,10 @@ init([]) ->
 
     ChildSpecs = [
         #{
+            id => event_manager,
+            start => {event_manager, start_link, []}
+        },
+        #{
             id => backend,
             start => {backend, start_link, []},
             restart => permanent,

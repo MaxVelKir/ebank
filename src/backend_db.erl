@@ -96,6 +96,7 @@ credit(AccNo, Amount, Dbref) ->
 -spec do_credit(#account{} | operation_error(), amount(), dbref()) -> maybe_ok().
 do_credit(#account{acc_no = AccNo, balance = Balance, transactions = Trs}, Amount, Dbref) ->
     NewBalance = Balance + Amount,
+    event_manager:notify({deposit, NewBalance}),
     make_transaction(AccNo, credit, Amount, NewBalance, Trs, Dbref);
 do_credit(Error = {error, _}, _Amount, _Dbref) ->
     Error.
@@ -110,6 +111,7 @@ do_debit(#account{balance = Balance}, Amount, _Dbref) when Amount > Balance ->
     {error, "Not enough money on account!"};
 do_debit(#account{acc_no = AccNo, balance = Balance, transactions = Trs}, Amount, Dbref) ->
     NewBalance = Balance - Amount,
+    event_manager:notify({deposit, NewBalance}),
     make_transaction(AccNo, debit, Amount, NewBalance, Trs, Dbref);
 do_debit(Error = {error, _}, _Amount, _Dbref) ->
     Error.
