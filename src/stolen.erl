@@ -23,6 +23,8 @@ handle_event({invalid_pin, AccNo}, TabRef) ->
     {ok, TabRef};
 handle_event({Event, AccNo}, TabRef) when Event == valid_pin; Event == account_unblocked ->
     true = ets:delete(TabRef, AccNo),
+    {ok, TabRef};
+handle_event(_IgnoreEvent, TabRef) ->
     {ok, TabRef}.
 
 handle_invalid_pin(Attempts, AccNo) when Attempts >= 3 ->
