@@ -3,9 +3,9 @@ kind: Config
 metadata:
   name: ebank-skaffold
 build:
+  tagPolicy:
+    dateTime: {}
   artifacts:
     - image: ghcr.io/MaxVelKir/ebank/ebank
       docker:
         dockerfile: Dockerfile
-  tagPolicy:
-    sha256: {}
