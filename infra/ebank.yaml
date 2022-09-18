@@ -1,0 +1,19 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ebank
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ebank
+  template:
+    metadata:
+      labels:
+        app: ebank
+    spec:
+      containers:
+        - name: ebank
+          image: ghcr.io/MaxVelKir/ebank/ebank

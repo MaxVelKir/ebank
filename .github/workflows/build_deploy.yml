@@ -17,9 +17,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Log into ghrc
-        uses: |
-        echo $GH_TOKEN | docker login ghrc.io -u MaxVelKir --password-stdin
+      - name: Log into ghcr
+        run: |
+          echo $GH_TOKEN | docker login ghcr.io -u MaxVelKir --password-stdin
 
       - name: Skaffold run
         uses: hiberbee/github-action-skaffold@1.12.0

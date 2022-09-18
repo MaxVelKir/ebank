@@ -4,7 +4,7 @@ metadata:
   name: ebank-skaffold
 build:
   artifacts:
-    - image: ghrc.io/MaxVelKir/ebank
+    - image: ghcr.io/MaxVelKir/ebank/ebank
       docker:
         dockerfile: Dockerfile
   tagPolicy:
