@@ -6,6 +6,6 @@ build:
   tagPolicy:
     dateTime: {}
   artifacts:
-    - image: ghcr.io/MaxVelKir/ebank/ebank
+    - image: ghcr.io/maxvelkir/ebank/ebank
       docker:
         dockerfile: Dockerfile
