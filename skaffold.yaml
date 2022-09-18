@@ -7,3 +7,5 @@ build:
     - image: ghrc.io/MaxVelKir/ebank
       docker:
         dockerfile: Dockerfile
+  tagPolicy:
+    sha256: {}

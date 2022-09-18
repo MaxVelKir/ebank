@@ -1,10 +1,10 @@
 ---
-name: Create and public a Docker image
+name: Create and publish a Docker image
 
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build_push:
