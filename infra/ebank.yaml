@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: ebank
-          image: ghcr.io/MaxVelKir/ebank/ebank
+          image: ghcr.io/maxvelkir/ebank/ebank
 
       imagePullSecrets:
         - name: dockerconfigjson-github-com
