@@ -1,0 +1,9 @@
+apiVersion: skaffold/v2beta12
+kind: Config
+metadata:
+  name: ebank-skaffold
+build:
+  artifacts:
+    - image: ghrc.io/MaxVelKir/ebank
+      docker:
+        dockerfile: Dockerfile
