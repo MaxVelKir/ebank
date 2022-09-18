@@ -23,5 +23,5 @@ jobs:
 
       - name: Skaffold run
         uses: hiberbee/github-action-skaffold@1.12.0
-          with:
-            command: build
+        with:
+          command: build
