@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Log into ghcr
-        uses: |
+        run: |
         echo $GH_TOKEN | docker login ghcr.io -u MaxVelKir --password-stdin
 
       - name: Skaffold run
