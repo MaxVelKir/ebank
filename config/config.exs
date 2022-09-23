@@ -16,7 +16,7 @@ config :ebank_web,
 config :ebank_web, EbankWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [view: EbankWeb.ErrorView, accepts: ~w(html json), layout: false],
-  pubsub_server: Ebank.PubSub,
+  pubsub_server: EbankWeb.PubSub,
   live_view: [signing_salt: "206I2sbl"]
 
 # Configure esbuild (the version is required)

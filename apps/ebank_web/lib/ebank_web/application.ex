@@ -9,7 +9,7 @@ defmodule EbankWeb.Application do
   def start(_type, _args) do
     children = [
       # Start the Telemetry supervisor
-      EbankWeb.Telemetry,
+      {Phoenix.PubSub, name: EbankWeb.PubSub},
       # Start the Endpoint (http/https)
       EbankWeb.Endpoint
       # Start a worker by calling: EbankWeb.Worker.start_link(arg)
