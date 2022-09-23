@@ -20,19 +20,23 @@ jobs:
         uses: actions/cache@v2
         id: cache-build
         with:
-          path: _build
+          path: apps/ebank/_build
           key: build-default-rebar${{ env.REBAR_VERSION }}-otp-${{ env.OTP_VERSION }}
           restore-keys: |
             build-default-rebar${{ env.REBAR_VERSION }}-otp${{ env.OTP_VERSION }}
 
       - name: "Check that code is formatted"
+        working-directory: apps/ebank
         run: rebar3 fmt --check
 
       - name: "Run unit tests"
+        working-directory: apps/ebank
         run: rebar3 eunit
 
       - name: "Run dialyzer"
+        working-directory: apps/ebank 
         run: rebar3 dialyzer
 
       - name: "Run common tests"
+        working-directory: apps/ebank
         run: rebar3 ct
