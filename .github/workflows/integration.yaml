@@ -35,7 +35,7 @@ jobs:
         run: rebar3 eunit
 
       - name: "Run dialyzer"
-        working-directory: apps/ebank 
+        working-directory: apps/ebank
         run: rebar3 dialyzer
 
       - name: "Run common tests"
