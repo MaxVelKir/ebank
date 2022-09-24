@@ -1,56 +1,60 @@
 ARG ALPINE_VERSION=3.16.0
 ARG ERLANG_VERSION=25.0
+ARG ELIXIR_VERSION=1.14.0
+ARG MIX_ENV
+
 # Builder Stage
 #
 # This builder stage is similar to a development environment. All tools and
-# compile-time dependencies are packed here. You should be able to use this
-# stage to run a developer workflow in Docker using:
-#
-#     $ docker build -t my_erl_builder --target=builder .
-#     $ docker run -ti --mount type=bind,source="$PWD",target=/tmp -w /tmp \
-#         my_erl_builder /bin/sh
-#
-FROM hexpm/erlang:$ERLANG_VERSION-alpine-$ALPINE_VERSION as builder
+# compile-time dependencies are packed here.
+# 
 
-RUN apk add --update tar curl git bash make libc-dev gcc g++ && \
-    rm -rf /var/cache/apk/
+FROM hexpm/elixir:$ELIXIR_VERSION-erlang-$ERLANG_VERSION-alpine-$ALPINE_VERSION as build
 
-RUN set -xe \
-    && curl -fSL -o rebar3 "https://s3.amazonaws.com/rebar3-nightly/rebar3" \
-    && chmod +x ./rebar3 \
-    && ./rebar3 local install \
-    && rm ./rebar3
+ENV MIX_ENV=${MIX_ENV:-prod}
 
-ENV PATH "$PATH:/root/.cache/rebar3/bin"
+WORKDIR /opt/source
 
-WORKDIR /tmp
+RUN mix local.hex --force \
+  && mix local.rebar --force \
+  && apk add --no-cache 'nodejs=~16' \
+  && apk add --no-cache 'npm=~8'
 
-COPY src src
-COPY include include
-COPY priv priv
 COPY config config
-COPY rebar.config rebar.config
+COPY mix.exs mix.lock ./
+COPY apps/ebank_web/assets apps/ebank_web/assets
+COPY apps/ebank_web/mix.exs apps/ebank_web/mix.exs
 
-RUN rebar3 as prod release
+COPY apps/ebank/src apps/ebank/src
+COPY apps/ebank/config apps/ebank/config
+COPY apps/ebank/include apps/ebank/include
+COPY apps/ebank/priv apps/ebank/priv
+COPY apps/ebank/rebar.config apps/ebank/rebar.config
 
-#
-# Default Stage
-#
-# This stage packages the monolithic release built in the previous stage with
-# the minimum system requirement to run it. This is the image that is used when
-# running the project with Docker.
-#
+RUN mix setup \
+  && mix deps.compile
 
-FROM alpine:$ALPINE_VERSION
+COPY rel rel
+COPY apps/ebank_web/assets apps/ebank_web/assets
+COPY apps/ebank_web/lib apps/ebank_web/lib
+COPY apps/ebank_web/priv apps/ebank_web/priv
 
-RUN apk add --no-cache openssl && \
-    apk add --no-cache ncurses-libs && \
-    apk add --no-cache libstdc++ && \
-    rm -rf /var/cache/apk/
+RUN mix assets.deploy \
+  && mix release ebank_web --path out
+
+FROM alpine:$ALPINE_VERSION AS default
+
+EXPOSE 4000
+
+ENV SECRET_KEY_BASE=gADa4/M4bkVxKK2morfrOpPnuMngedfWUME40uIfZEmufDTGycblcPEwq74R8l4b
 
 WORKDIR /opt
 
-COPY --from=builder /tmp/_build/prod/rel/ebank ./
+RUN apk add --no-cache 'ncurses=~6' \
+  && apk add --no-cache 'openssl=~1.1' \
+  && apk add --no-cache 'libstdc++'
 
-CMD ["foreground"]
-ENTRYPOINT ["bin/ebank"]
+COPY --from=build /opt/source/out/ ./
+
+CMD ["start"]
+ENTRYPOINT ["bin/ebank_web"]
