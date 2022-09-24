@@ -7,7 +7,20 @@ defmodule Ebank.Umbrella.MixProject do
       version: "0.1.0",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      releases: releases()
+    ]
+  end
+  
+  defp releases do
+    [
+      ebank_web: [
+        include_executables_for: [:unix],
+        applications: [
+          runtime_tools: :permanent,
+          ebank_web: :permanent
+        ]
+      ]
     ]
   end
 
@@ -39,7 +52,8 @@ defmodule Ebank.Umbrella.MixProject do
   defp aliases do
     [
       # run `mix setup` in all child apps
-      setup: ["cmd mix setup"]
+      setup: ["cmd mix setup"],
+      "assets.deploy": ["cmd --app ebank_web mix assets.deploy"]
     ]
   end
 end
