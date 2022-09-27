@@ -9,4 +9,7 @@ build:
     - image: ghcr.io/maxvelkir/ebank/ebank
       context: apps/ebank
       docker:
-        dockerfile: dockerfile
+        dockerfile: Dockerfile
+    - image: ghcr.io/maxvelkir/ebank/ebank-web
+      docker:
+        dockerfile: Dockerfile
