@@ -1,0 +1,43 @@
+---
+on: push
+
+env:
+  REBAR_VERSION: 3.19.0
+  OTP_VERSION: 25.0
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Integration
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{env.OTP_VERSION}}
+          rebar3-version: ${{env.REBAR_VERSION}}
+
+      - name: Cache Build Directory for the Current OTP/REBAR versions
+        uses: actions/cache@v2
+        id: cache-build
+        with:
+          path: apps/ebank/_build
+          key: build-default-rebar${{ env.REBAR_VERSION }}-otp-${{ env.OTP_VERSION }}
+          restore-keys: |
+            build-default-rebar${{ env.REBAR_VERSION }}-otp${{ env.OTP_VERSION }}
+
+      - name: "Check that code is formatted"
+        working-directory: apps/ebank
+        run: rebar3 fmt --check
+
+      - name: "Run unit tests"
+        working-directory: apps/ebank
+        run: rebar3 eunit
+
+      - name: "Run dialyzer"
+        working-directory: apps/ebank
+        run: rebar3 dialyzer
+
+      - name: "Run common tests"
+        working-directory: apps/ebank
+        run: rebar3 ct
