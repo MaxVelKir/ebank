@@ -1,4 +1,5 @@
 ---
+name: Integration (ERL)
 on: push
 
 env:

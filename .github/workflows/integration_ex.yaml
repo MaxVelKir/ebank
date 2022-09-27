@@ -1,8 +1,10 @@
 ---
+name: Integration (EX)
+
 on: push
 
 env:
-  REBAR_VERSION: 3.19.0
+  ELIXIR_VERSION: 1.14.0
   OTP_VERSION: 25.0
 
 jobs:
@@ -15,29 +17,31 @@ jobs:
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{env.OTP_VERSION}}
-          rebar3-version: ${{env.REBAR_VERSION}}
-
+          rebar3-version: ${{env.ELIXIR_VERSION}}
+            
       - name: Cache Build Directory for the Current OTP/REBAR versions
         uses: actions/cache@v2
         id: cache-build
         with:
-          path: apps/ebank/_build
-          key: build-default-rebar${{ env.REBAR_VERSION }}-otp-${{ env.OTP_VERSION }}
+          path: _build
+          key: build-test-elixir${{ env.ELIXIR_VERSION }}-otp-${{ env.OTP_VERSION }}
           restore-keys: |
-            build-default-rebar${{ env.REBAR_VERSION }}-otp${{ env.OTP_VERSION }}
+            build-test-elixir${{ env.ELIXIR_VERSION }}-otp-${{ env.OTP_VERSION }}
 
-      - name: "Check that code is formatted"
-        working-directory: apps/ebank
-        run: rebar3 fmt --check
+      - name: Get dependencies
+        run: mix deps.get
 
-      - name: "Run unit tests"
-        working-directory: apps/ebank
-        run: rebar3 eunit
+      - name: Check unused dependencies
+        run: mix deps.unlock --check-unused
 
-      - name: "Run dialyzer"
-        working-directory: apps/ebank
-        run: rebar3 dialyzer
+      - name: Compile the project
+        run: mix compile --warnings-as-errors
 
-      - name: "Run common tests"
-        working-directory: apps/ebank
-        run: rebar3 ct
+      - name: Check that code is formatted
+        run: mix format --check-formatted
+
+      - name: Run elixir test
+        run: mix test --trace --warnings-as-errors
+
+      - name: Dialyzer
+        run: MIX_ENV=dev mix dialyzer
