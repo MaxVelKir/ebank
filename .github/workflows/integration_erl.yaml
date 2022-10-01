@@ -4,7 +4,7 @@ on: push
 
 env:
   REBAR_VERSION: 3.19.0
-  OTP_VERSION: 25.0
+  OTP_VERSION: 24.0
 
 jobs:
   test:
