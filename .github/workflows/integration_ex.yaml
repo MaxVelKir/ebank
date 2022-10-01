@@ -17,7 +17,7 @@ jobs:
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{env.OTP_VERSION}}
-          rebar3-version: ${{env.ELIXIR_VERSION}}
+          elixir-version: ${{env.ELIXIR_VERSION}}
             
       - name: Cache Build Directory for the Current OTP/REBAR versions
         uses: actions/cache@v2
