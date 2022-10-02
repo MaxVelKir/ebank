@@ -4,7 +4,7 @@ metadata:
   name: ebank-skaffold
 build:
   tagPolicy:
-    dateTime: {}
+    sha256: {}
   artifacts:
     - image: ghcr.io/maxvelkir/ebank/ebank
       context: apps/ebank
@@ -13,3 +13,10 @@ build:
     - image: ghcr.io/maxvelkir/ebank/ebank-web
       docker:
         dockerfile: Dockerfile
+
+deploy:
+  kubectl:
+    manifests:
+      - infra/secrets/registryauth.yaml
+      - infra/ebank.yaml
+      - infra/ebank_web.yaml

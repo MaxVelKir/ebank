@@ -1,0 +1,21 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ebank-web
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ebank-web
+  template:
+    metadata:
+      labels:
+        app: ebank-web
+    spec:
+      containers:
+        - name: ebank-web
+          image: ghcr.io/maxvelkir/ebank/ebank-web
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com
